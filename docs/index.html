@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>拖动插件</title>
+    <style>
+        body {
+            background-color: #ddd;
+            height: 500px;
+        }
+
+        #dragdefault,#dragheader ,#dragparent,#dragparent2,#dragbody,#dragfix{
+            height: 100px;
+            width: 100px;
+            background: #EEEEEE;
+            border: 1px solid #cecece;
+        }
+
+        #dragbody {
+            left:220px;
+        }
+        #dragfix {
+            position: fixed;
+            top: 100px;
+            left: 200px;
+        }
+        #dragheader {
+            left:420px;
+        }
+        .parent,.parent2{
+            top:0px;
+            left:10px;
+            background:gray;
+            border:1px solid #ccc;
+            height: 400px;
+            width:400px;
+            position:relative;
+        }
+        .parent2{
+            position: static;
+        }
+        .handle{
+            background-color:blue;
+            color:#fff;
+            line-height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="dragdefault">拖我（无边界）</div>
+    <div id="dragbody">拖我（相对于body的边界）</div>
+    <div id="dragfix">拖我（fixed定位）</div>
+    <div id="dragheader">
+        <header class="handle">我是handle</header>
+        拖我的header
+    </div>
+
+    <div class="parent2">
+            我是容器，不要超出我,我没有定位
+            <div id="dragparent2">拖我（在容器内）</div>
+        </div>
+    <div class="parent">
+            我是容器，不要超出我,我有定位
+            <div id="dragparent">拖我（在容器内）</div>
+        </div>
+
+    <script src="jquery-1.11.2.js"></script>
+    <script src="index.js"></script>
+    <script>
+        var drag = new Drag();
+        drag.init({ target: '#dragdefault' });
+        var dragbody = new Drag();
+        dragbody.init({ target: '#dragbody', boundary: true });
+        var dragfix = new Drag();
+        dragfix.init({ target: '#dragfix', boundary: true });
+        var dragheader = new Drag();
+        dragheader.init({ target: '#dragheader',handle:'.handle'});
+        var dragparent = new Drag();
+        dragparent.init({ target: '#dragparent', boundary: true,parent:'.parent' });
+        var dragparent2 = new Drag();
+        dragparent2.init({ target: '#dragparent2', boundary: true,parent:'.parent2' });
+    </script>
+</body>
+
+</html>
