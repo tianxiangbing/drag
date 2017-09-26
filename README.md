@@ -23,4 +23,7 @@
         var dragparent2 = new Drag();
         dragparent2.init({ target: '#dragparent2', boundary: true,parent:'.parent2' });
 ```
-
+或者使用jQuery插件的方式调用
+```js
+$('.drag').Drag({boundary:true});//options一致
+```

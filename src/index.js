@@ -1,12 +1,12 @@
 /*
  * Created with Visual Studio Code.
- * github: https://github.com/tianxiangbing/data-merge
+ * github: https://github.com/tianxiangbing/drag
  * User: 田想兵
- * Date: 2017-07-21
+ * Date: 2017-09-25
  * Time: 20:00:00
  * Contact: 55342775@qq.com
- * desc: 主旨是对某一时间段里的数据进行合并，重复的记录进行去重，只取最新的记录。比如一秒钟来了1000条数据，其中有500条是重复的，那这一秒钟应该只返回500条结果。
- * 请使用https://github.com/tianxiangbing/data-merge 上的代码
+ * desc: 针对网页中出现的拖曳插件，边界判断，fixed定位拖动.基于`jQuery` 或者`zepto`.包括针对父级容器内的拖动处理
+ * 请使用https://github.com/tianxiangbing/drag 上的代码
  */
 (function (root, factory) {
     // 
@@ -14,7 +14,7 @@
     if (typeof define === 'function' && define.amd) {
         define(["jquery"], factory);
     } else if (typeof define === 'function' && define.cmd) {
-        define(function (require, exports, module) {
+        define(function (require) {
             let $ = require("jquery");
             return factory($);
         });
@@ -34,10 +34,10 @@
             this.position = { x: 0, y: 0 };
         }
         init(settings) {
-            this.ss = Object.assign({ parent: 'body', boundary: false }, settings);
+            this.ss = Object.assign({ parent: 'body', boundary: false, startCallback: () => { }, stopCallback: () => { }, moveCallback: () => { } }, settings);
             this.target = $(this.ss.target);
-            if(this.target.css('position') ==='static'){
-                this.target.css('position','absolute');
+            if (this.target.css('position') === 'static') {
+                this.target.css('position', 'absolute');
             }
             this.handle = this.target.find(this.ss.handle);
             this.handle.size() === 0 ? this.handle = this.target : undefined;
@@ -51,8 +51,7 @@
         }
         bindEvent() {
             this.handle.on('mousedown', (e) => {
-                this.status = 1;
-                this.position = { x: e.clientX, y: e.clientY };
+                this.start();
                 e.stopPropagation();
                 e.preventDefault();
             })
@@ -63,30 +62,48 @@
                 e.stopPropagation();
                 e.preventDefault();
             });
-            $(document).on('mouseup', e => {
+            $(document).on('mouseup', () => {
                 if (this.status) {
-                    this.status = 0;
-                    this.pos = this.target.position();
+                    this.stop();
                 }
-            })
+            });
+            $(window).on('resize', () => {
+                this.setPosition(0, 0, this.position);
+            });
+        }
+        start() {
+            this.status = 1;
+            this.position = { x: e.clientX, y: e.clientY };
+            this.ss.startCallback.call(this, this.target, this.pos, this.position);
+        }
+        stop() {
+            this.status = 0;
+            this.pos = this.target.position();
+            this.ss.stopCallback.call(this, this.target, this.pos);
         }
         setPosition(cx, cy) {
             let position = this.position;
             let pos = { x: cx - position.x, y: cy - position.y };
             let x = this.pos.left + pos.x;
             let y = this.pos.top + pos.y;
-            let minx, maxx, miny, maxy;
+            let minx = 0, maxx = 0, miny = 0, maxy = 0;
             if (this.ss.boundary) {
                 if (this.isFixed) {
                     minx = 0;
                     maxx = $(window).width() - this.target.width();
                     miny = 0;
                     maxy = $(window).height() - this.target.height();
-                }else if (this.isParentPosition) {
+                } else if (this.isParentPosition) {
+                    let parentHeight = this.parent.height();
+                    let parentWidth = this.parent.width();
+                    if (this.ss.parent == 'body') {
+                        parentWidth = Math.max(parentWidth, this.parent.width());
+                        parentHeight = Math.max(parentHeight, this.parent.height());
+                    }
                     minx = 0;
-                    maxx = this.parent.width() - this.target.width();
+                    maxx = parentWidth - this.target.width();
                     miny = 0;
-                    maxy = this.parent.height() - this.target.height();
+                    maxy = parentHeight - this.target.height();
                 } else {
                     this.parentPos = this.parent.position();
                     minx = this.parentPos.left;
@@ -98,7 +115,21 @@
                 y = Math.max(Math.min(y, maxy), miny);
             }
             this.target.css({ left: x, top: y });
+            this.ss.moveCallback.call(this, this.target, x, y);
         }
     }
+
+    $.fn.Drag = function (settings) {
+        var arr = [];
+        $(this).each(function () {
+            var options = Object.assign({
+                target: $(this)
+            }, settings);
+            var drag = new Drag();
+            drag.init(options);
+            arr.push(lz);
+        });
+        return arr;
+    };
     return Drag;
 });

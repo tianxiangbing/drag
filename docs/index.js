@@ -8,13 +8,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /*
  * Created with Visual Studio Code.
- * github: https://github.com/tianxiangbing/data-merge
+ * github: https://github.com/tianxiangbing/drag
  * User: 田想兵
- * Date: 2017-07-21
+ * Date: 2017-09-25
  * Time: 20:00:00
  * Contact: 55342775@qq.com
- * desc: 主旨是对某一时间段里的数据进行合并，重复的记录进行去重，只取最新的记录。比如一秒钟来了1000条数据，其中有500条是重复的，那这一秒钟应该只返回500条结果。
- * 请使用https://github.com/tianxiangbing/data-merge 上的代码
+ * desc: 针对网页中出现的拖曳插件，边界判断，fixed定位拖动.基于`jQuery` 或者`zepto`.包括针对父级容器内的拖动处理
+ * 请使用https://github.com/tianxiangbing/drag 上的代码
  */
 (function (root, factory) {
     // 
@@ -22,7 +22,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     if (typeof define === 'function' && define.amd) {
         define(["jquery"], factory);
     } else if (typeof define === 'function' && define.cmd) {
-        define(function (require, exports, module) {
+        define(function (require) {
             var $ = require("jquery");
             return factory($);
         });
@@ -49,7 +49,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _createClass(Drag, [{
             key: 'init',
             value: function init(settings) {
-                this.ss = _extends({ parent: 'body', boundary: false }, settings);
+                this.ss = _extends({ parent: 'body', boundary: false, startCallback: function startCallback() {}, stopCallback: function stopCallback() {}, moveCallback: function moveCallback() {} }, settings);
                 this.target = $(this.ss.target);
                 if (this.target.css('position') === 'static') {
                     this.target.css('position', 'absolute');
@@ -70,8 +70,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var _this = this;
 
                 this.handle.on('mousedown', function (e) {
-                    _this.status = 1;
-                    _this.position = { x: e.clientX, y: e.clientY };
+                    _this.start();
                     e.stopPropagation();
                     e.preventDefault();
                 });
@@ -82,12 +81,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     e.stopPropagation();
                     e.preventDefault();
                 });
-                $(document).on('mouseup', function (e) {
+                $(document).on('mouseup', function () {
                     if (_this.status) {
-                        _this.status = 0;
-                        _this.pos = _this.target.position();
+                        _this.stop();
                     }
                 });
+                $(window).on('resize', function () {
+                    _this.setPosition(0, 0, _this.position);
+                });
+            }
+        }, {
+            key: 'start',
+            value: function start() {
+                this.status = 1;
+                this.position = { x: e.clientX, y: e.clientY };
+                this.ss.startCallback.call(this, this.target, this.pos, this.position);
+            }
+        }, {
+            key: 'stop',
+            value: function stop() {
+                this.status = 0;
+                this.pos = this.target.position();
+                this.ss.stopCallback.call(this, this.target, this.pos);
             }
         }, {
             key: 'setPosition',
@@ -107,10 +122,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         miny = 0;
                         maxy = $(window).height() - this.target.height();
                     } else if (this.isParentPosition) {
+                        var parentHeight = this.parent.height();
+                        var parentWidth = this.parent.width();
+                        if (this.ss.parent == 'body') {
+                            parentWidth = Math.max(parentWidth, this.parent.width());
+                            parentHeight = Math.max(parentHeight, this.parent.height());
+                        }
                         minx = 0;
-                        maxx = this.parent.width() - this.target.width();
+                        maxx = parentWidth - this.target.width();
                         miny = 0;
-                        maxy = this.parent.height() - this.target.height();
+                        maxy = parentHeight - this.target.height();
                     } else {
                         this.parentPos = this.parent.position();
                         minx = this.parentPos.left;
@@ -122,11 +143,24 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     y = Math.max(Math.min(y, maxy), miny);
                 }
                 this.target.css({ left: x, top: y });
+                this.ss.moveCallback.call(this, this.target, x, y);
             }
         }]);
 
         return Drag;
     }();
 
+    $.fn.Drag = function (settings) {
+        var arr = [];
+        $(this).each(function () {
+            var options = _extends({
+                target: $(this)
+            }, settings);
+            var drag = new Drag();
+            drag.init(options);
+            arr.push(lz);
+        });
+        return arr;
+    };
     return Drag;
 });
