@@ -46,18 +46,21 @@
             this.isFixed = this.target.css('position') === 'fixed';
             this.isParentPosition = this.parent.css('position') !== 'static';
             this.pos = this.target.position();
+            this.docBox = { height: $(document).height(), width: $(document).width() };
             this.bindEvent();
-            this.setPosition(0, 0, this.position);
+            this.reset();
         }
         bindEvent() {
             this.handle.on('mousedown', (e) => {
-                this.start();
+                this.start(e.clientX, e.clientY);
                 e.stopPropagation();
                 e.preventDefault();
             })
             $(document).on('mousemove', e => {
                 if (this.status) {
-                    this.setPosition(e.clientX, e.clientY);
+                    let position = this.position;
+                    let pos = { x: e.clientX - position.x, y: e.clientY - position.y };
+                    this.setPosition(pos);
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -68,12 +71,16 @@
                 }
             });
             $(window).on('resize', () => {
-                this.setPosition(0, 0, this.position);
+                this.reset();
             });
         }
-        start() {
+        reset() {
+            this.setPosition({ x: 0, y: 0 });
+        }
+        start(x, y) {
+            this.docBox = { height: $(document).height(), width: $(document).width() };
             this.status = 1;
-            this.position = { x: e.clientX, y: e.clientY };
+            this.position = { x: x, y: y };
             this.ss.startCallback.call(this, this.target, this.pos, this.position);
         }
         stop() {
@@ -81,35 +88,33 @@
             this.pos = this.target.position();
             this.ss.stopCallback.call(this, this.target, this.pos);
         }
-        setPosition(cx, cy) {
-            let position = this.position;
-            let pos = { x: cx - position.x, y: cy - position.y };
+        setPosition(pos) {
             let x = this.pos.left + pos.x;
             let y = this.pos.top + pos.y;
             let minx = 0, maxx = 0, miny = 0, maxy = 0;
             if (this.ss.boundary) {
+                let parentHeight = this.parent.height();
+                let parentWidth = this.parent.width();
+                if (this.ss.parent == 'body') {
+                    parentWidth = Math.max(parentWidth, this.docBox.width);
+                    parentHeight = Math.max(parentHeight, this.docBox.height);
+                }
                 if (this.isFixed) {
                     minx = 0;
-                    maxx = $(window).width() - this.target.width();
+                    maxx = $(window).width() - this.target.outerWidth();
                     miny = 0;
-                    maxy = $(window).height() - this.target.height();
+                    maxy = $(window).height() - this.target.outerHeight();
                 } else if (this.isParentPosition) {
-                    let parentHeight = this.parent.height();
-                    let parentWidth = this.parent.width();
-                    if (this.ss.parent == 'body') {
-                        parentWidth = Math.max(parentWidth, this.parent.width());
-                        parentHeight = Math.max(parentHeight, this.parent.height());
-                    }
                     minx = 0;
-                    maxx = parentWidth - this.target.width();
+                    maxx = parentWidth - this.target.outerWidth();
                     miny = 0;
-                    maxy = parentHeight - this.target.height();
+                    maxy = parentHeight - this.target.outerHeight();
                 } else {
                     this.parentPos = this.parent.position();
                     minx = this.parentPos.left;
-                    maxx = this.parentPos.left + this.parent.width() - this.target.width();
+                    maxx = this.parentPos.left + parentWidth - this.target.outerWidth();
                     miny = this.parentPos.top;
-                    maxy = this.parentPos.top + this.parent.height() - this.target.height();
+                    maxy = this.parentPos.top + parentHeight - this.target.outerHeight();
                 }
                 x = Math.max(Math.min(x, maxx), minx);
                 y = Math.max(Math.min(y, maxy), miny);

@@ -28,3 +28,18 @@ dragparent2.init({ target: '#dragparent2', boundary: true,parent:'.parent2' });
 ```js
 $('.drag').Drag({boundary:true});//options一致
 ```
+# API
+## init:`function()`
+    在new 的方法调用时的初始化方法，使用`$.fn`的插件方式不需要
+## target:`string|dom`
+    需要移动的元素
+## boundary:`bool`
+    是否有边界的限制，默认以body为边界，可以指定parent
+## parent:`string|dom`
+    父级容器作为边界，这有两种情况，父级无定位的和有定位的
+## startCallack:`(this.target, this.pos, this.position)`
+    开始时的回调
+## stopCallack:`(this.target, this.pos);`
+    结束的回调,第二个参数是当前位置
+## moveCallack:`(this.target, x, y);`
+    移动时的回调,x、y对应移动到的left和top

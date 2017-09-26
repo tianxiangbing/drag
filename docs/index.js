@@ -61,8 +61,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.isFixed = this.target.css('position') === 'fixed';
                 this.isParentPosition = this.parent.css('position') !== 'static';
                 this.pos = this.target.position();
+                this.docBox = { height: $(document).height(), width: $(document).width() };
                 this.bindEvent();
-                this.setPosition(0, 0, this.position);
+                this.reset();
             }
         }, {
             key: 'bindEvent',
@@ -70,13 +71,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var _this = this;
 
                 this.handle.on('mousedown', function (e) {
-                    _this.start();
+                    _this.start(e.clientX, e.clientY);
                     e.stopPropagation();
                     e.preventDefault();
                 });
                 $(document).on('mousemove', function (e) {
                     if (_this.status) {
-                        _this.setPosition(e.clientX, e.clientY);
+                        var position = _this.position;
+                        var pos = { x: e.clientX - position.x, y: e.clientY - position.y };
+                        _this.setPosition(pos);
                     }
                     e.stopPropagation();
                     e.preventDefault();
@@ -87,14 +90,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
                 });
                 $(window).on('resize', function () {
-                    _this.setPosition(0, 0, _this.position);
+                    _this.reset();
                 });
             }
         }, {
+            key: 'reset',
+            value: function reset() {
+                this.setPosition({ x: 0, y: 0 });
+            }
+        }, {
             key: 'start',
-            value: function start() {
+            value: function start(x, y) {
+                this.docBox = { height: $(document).height(), width: $(document).width() };
                 this.status = 1;
-                this.position = { x: e.clientX, y: e.clientY };
+                this.position = { x: x, y: y };
                 this.ss.startCallback.call(this, this.target, this.pos, this.position);
             }
         }, {
@@ -106,38 +115,36 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         }, {
             key: 'setPosition',
-            value: function setPosition(cx, cy) {
-                var position = this.position;
-                var pos = { x: cx - position.x, y: cy - position.y };
+            value: function setPosition(pos) {
                 var x = this.pos.left + pos.x;
                 var y = this.pos.top + pos.y;
-                var minx = void 0,
-                    maxx = void 0,
-                    miny = void 0,
-                    maxy = void 0;
+                var minx = 0,
+                    maxx = 0,
+                    miny = 0,
+                    maxy = 0;
                 if (this.ss.boundary) {
+                    var parentHeight = this.parent.height();
+                    var parentWidth = this.parent.width();
+                    if (this.ss.parent == 'body') {
+                        parentWidth = Math.max(parentWidth, this.docBox.width);
+                        parentHeight = Math.max(parentHeight, this.docBox.height);
+                    }
                     if (this.isFixed) {
                         minx = 0;
-                        maxx = $(window).width() - this.target.width();
+                        maxx = $(window).width() - this.target.outerWidth();
                         miny = 0;
-                        maxy = $(window).height() - this.target.height();
+                        maxy = $(window).height() - this.target.outerHeight();
                     } else if (this.isParentPosition) {
-                        var parentHeight = this.parent.height();
-                        var parentWidth = this.parent.width();
-                        if (this.ss.parent == 'body') {
-                            parentWidth = Math.max(parentWidth, this.parent.width());
-                            parentHeight = Math.max(parentHeight, this.parent.height());
-                        }
                         minx = 0;
-                        maxx = parentWidth - this.target.width();
+                        maxx = parentWidth - this.target.outerWidth();
                         miny = 0;
-                        maxy = parentHeight - this.target.height();
+                        maxy = parentHeight - this.target.outerHeight();
                     } else {
                         this.parentPos = this.parent.position();
                         minx = this.parentPos.left;
-                        maxx = this.parentPos.left + this.parent.width() - this.target.width();
+                        maxx = this.parentPos.left + parentWidth - this.target.outerWidth();
                         miny = this.parentPos.top;
-                        maxy = this.parentPos.top + this.parent.height() - this.target.height();
+                        maxy = this.parentPos.top + parentHeight - this.target.outerHeight();
                     }
                     x = Math.max(Math.min(x, maxx), minx);
                     y = Math.max(Math.min(y, maxy), miny);
