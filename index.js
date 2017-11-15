@@ -82,7 +82,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         _this.setPosition(pos);
                     }
                     e.stopPropagation();
-                    e.preventDefault();
+                    // e.preventDefault();
                 });
                 $(document).on('mouseup', function () {
                     if (_this.status) {

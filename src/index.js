@@ -63,7 +63,7 @@
                     this.setPosition(pos);
                 }
                 e.stopPropagation();
-                e.preventDefault();
+                // e.preventDefault();
             });
             $(document).on('mouseup', () => {
                 if (this.status) {
