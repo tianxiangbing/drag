@@ -53,7 +53,7 @@
         bindEvent() {
             this.handle.on('mousedown', (e) => {
                 this.start(e.clientX, e.clientY);
-                e.stopPropagation();
+                // e.stopPropagation();
                 e.preventDefault();
             })
             $(document).on('mousemove', e => {

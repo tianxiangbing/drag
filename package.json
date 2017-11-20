@@ -1,6 +1,6 @@
 {
   "name": "jq-drag",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "拖曳插件",
   "main": "index.js",
   "scripts": {

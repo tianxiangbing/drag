@@ -72,7 +72,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 this.handle.on('mousedown', function (e) {
                     _this.start(e.clientX, e.clientY);
-                    e.stopPropagation();
+                    // e.stopPropagation();
                     e.preventDefault();
                 });
                 $(document).on('mousemove', function (e) {
