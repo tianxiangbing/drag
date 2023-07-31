@@ -132,7 +132,7 @@
             }, settings);
             var drag = new Drag();
             drag.init(options);
-            arr.push(lz);
+            arr.push(drag);
         });
         return arr;
     };
